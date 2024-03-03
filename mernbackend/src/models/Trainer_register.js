@@ -1,12 +1,6 @@
 const mongoose = require("mongoose");
 
-const URI = mongoose.connect("mongodb://127.0.0.1:27017/local");
 
-URI.then(() => {
-    console.log("Database connected");
-}).catch(() => {
-    console.log("Not connected");
-});
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -27,14 +21,7 @@ const userSchema = new mongoose.Schema({
         type: Number, // Assuming experience is represented as a number of years
         required: true,
     },
-    certificates: {
-        type: String,
-        required: true,
-    },
-    certificateFile: {
-        type: String, // Assuming the file path or storage reference
-        required: true,
-    },
+     
     password: {
         type: String,
         required: true,

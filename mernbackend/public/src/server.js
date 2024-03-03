@@ -44,5 +44,5 @@ app.post('/register', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is running on http://gymhost:${port}`);
 });

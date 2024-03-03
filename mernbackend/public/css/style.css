@@ -350,11 +350,12 @@ ol {
 }
 
 .nav-menu {
+	margin-top: 25px;
 	text-align: center;
 	background-color: #000000a1;
 	flex-wrap: wrap;
 	border-radius: 3cm;
-	width: 23cm;
+	width: 20cm;
 }
 
 .nav-menu ul li {
