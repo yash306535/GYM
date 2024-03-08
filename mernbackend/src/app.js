@@ -36,8 +36,24 @@ hbs.registerPartials(partial_path);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.set('views', path.join(__dirname, '../templates'));
+
 const bcrypt = require('bcrypt');
-const saltRounds = 10;
+
+
+
+
+app.get('/about-us', async (req, res) => {
+    try {
+        // Fetch feedbacks from the database
+        const feedbacks = await Feedbacks.find();
+        
+        res.render('about-us', { feedbacks });
+    } catch (error) {
+        console.error('Error fetching feedbacks:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 
 app.get('/', (req, res) => {
     res.redirect('index2'); // Renders the index2.ejs from the 'templates' folder
@@ -52,6 +68,7 @@ app.use(
         
     })
 );
+
 
 // const Razorpay = require('razorpay');
 // const razorpay = new Razorpay({
@@ -69,6 +86,16 @@ app.get('/plans', async (req, res) => {
     } catch (error) {
         console.error('Error fetching plans:', error);
         res.status(500).send('Failed to fetch plans from the database');
+    }
+});
+
+app.get('/u_trainer1', async (req, res) => {
+    try {
+        const trainers = await TrainerProfile.find();
+        res.render('u_trainer1', { trainers: trainers });
+    } catch (error) {
+        console.error('Error fetching trainers:', error);
+        res.status(500).send('Internal Server Error');
     }
 });
 app.get('/show-users-buyed-plan', async (req, res) => {
@@ -103,25 +130,27 @@ app.get('/show-users-buyed-plan', async (req, res) => {
 });
 app.post('/buy-plan', async (req, res) => {
     try {
-        const userEmail = req.session.email;
+        const userEmail = req.session.userEmail; // Assuming the user's email is stored in the session
         const planId = req.body.planId;
-        const trainerEmail = req.body.trainerEmail; // Retrieve trainer's email from the request body
+        const trainerEmail = req.body.trainerEmail;
 
-        // Find the user based on the email
         const user = await Profile.findOne({ email: userEmail });
 
         if (!user) {
             return res.status(404).send('User not found');
         }
 
-        // Assuming you have a FitnessPlan model for your plans
         const plan = await FitnessPlan.findById(planId);
 
         if (!plan) {
             return res.status(404).send('Plan not found');
         }
 
-        // Save the purchase details in user's profile
+        if (user.purchasedPlans.some(purchasedPlan => purchasedPlan.planId.equals(plan._id))) {
+            // User has already purchased the plan
+            return res.status(400).json({ warning: 'You have already purchased this plan you cant buy same plan again' });
+        }
+
         user.purchasedPlans.push({
             planId: plan._id,
             trainerEmail,
@@ -129,8 +158,7 @@ app.post('/buy-plan', async (req, res) => {
 
         await user.save();
 
-        // Save the purchase details in trainer's profile
-        const trainer = await TrainerProfile.findOne({ trainerEmail });
+        const trainer = await TrainerProfile.findOne({ email: trainerEmail });
 
         if (trainer) {
             trainer.purchasedUsers.push({
@@ -141,21 +169,20 @@ app.post('/buy-plan', async (req, res) => {
             await trainer.save();
         }
 
-        res.status(200).send('Plan purchased successfully');
+        res.status(200).json({ success: true, message: 'Plan purchased successfully' });
     } catch (error) {
         console.error('Error processing plan purchase:', error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
 
 
-// Assuming you have a session variable 'email' set during user login
 
 app.get('/buyed-plans-user', async (req, res) => {
     try {
         // Fetch user's email from the session
-        const userEmail = req.session.email;
+        const userEmail = req.session.userEmail;
 
         // Find the user based on the email
         const user = await Profile.findOne({ email: userEmail });
@@ -165,15 +192,18 @@ app.get('/buyed-plans-user', async (req, res) => {
         }
 
         // Fetch purchased plans for the user
-        const purchasedPlans = await FitnessPlan.find({ _id: { $in: user.purchasedPlans.map(plan => plan.planId) } });
+        const purchasedPlanIds = user.purchasedPlans.map(plan => plan.planId);
+        
+        const purchasedPlans = await FitnessPlan.find({ _id: { $in: purchasedPlanIds } });
 
-        // Render the buyed-plans-user.ejs template and pass purchased plans as data
-        res.render('buyed-plans-user', { purchasedPlans,userEmail });
+        // Render the 'buyed-plans' template and pass purchased plans as data
+        res.render('buyed-plans-user', { purchasedPlans, userEmail });
     } catch (error) {
         console.error('Error fetching or processing purchased plans:', error);
         res.status(500).send('Internal Server Error');
     }
 });
+
 // Mount the router at a specific base path (e.g., /user)
 app.use('/user', router);
 //fitness plan 
@@ -198,6 +228,11 @@ app.post('/trainer_plan', async (req, res) => {
             trainerEmail
         } = req.body;
 
+        // Validate if all required fields are provided
+        if (!name || !price || !duration || !trainer || !trainerEmail) {
+            return res.status(400).json({ message: 'Please provide all required fields' });
+        }
+
         // Create a new instance of the FitnessPlan model
         const newFitnessPlan = new FitnessPlan({
             name,
@@ -218,7 +253,6 @@ app.post('/trainer_plan', async (req, res) => {
             trainerEmail
         });
 
-        // Save the new fitness plan to the database
         await newFitnessPlan.save();
 
         // Redirect to trainerDashboard upon successful addition
@@ -247,7 +281,9 @@ module.exports = router;
 app.get("/login", (req, res) => { 
     res.render("login");
 });
-
+app.get("/u_register", (req, res) => { 
+    res.render("u_register");
+});
 app.get("/progress-tracking", (req, res) => { 
     res.render("progress-tracking");
 });
@@ -267,7 +303,7 @@ app.post('/save-progress', async (req, res) => {
         } = req.body;
 
         const progress = new Progress({
-            userEmail,
+            userEmail:userEmail,
             date,
             caloriesBurned,
             fatLoss,
@@ -278,7 +314,7 @@ app.post('/save-progress', async (req, res) => {
         });
 
         await progress.save();
-        res.render('progress-tracking', { success: 'Progress saved successfully' });
+        res.redirect('/progress-tracking?success=Progress saved successfully');
 
     } catch (error) {
         console.error('Error saving progress:', error);
@@ -300,8 +336,6 @@ app.get('/user-progress-data', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-
-
 app.get("/progress-tracking", (req, res) => { 
     res.render("progress-tracking");
 });
@@ -349,8 +383,6 @@ app.get('/buyed-plans', async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
-
-
 app.get("/trainerdashboard", (req, res) => {
     res.render("trainerdashboard");
 });
@@ -387,7 +419,7 @@ app.get('/show-trainer-profile', async (req, res) => {
 
         if (trainerProfile) {
             // Render the trainer profile page with the profile data
-            return res.render('show-trainer-Profile', { trainerProfile });
+            return res.render('show-trainer-profile', { trainerProfile });
         } else {
             // Trainer profile not found
             return res.status(404).send('Trainer profile not found');
@@ -397,7 +429,6 @@ app.get('/show-trainer-profile', async (req, res) => {
         return res.status(500).send('Internal Server Error');
     }
 });
-
 
 
 app.post("/login", async (req, res) => {
@@ -413,36 +444,47 @@ app.post("/login", async (req, res) => {
 
             if (isPasswordMatch) {
                 // Passwords match, login successful
-                console.log("Login successful");
 
                 // Check if the user has a profile
                 const userProfile = await Profile.findOne({ email: user.email_id });
-
+                console.log("login successful");
                 if (userProfile) {
                     // User profile exists, store user email in the session
                     req.session.userEmail = user.email_id;
                     // Redirect to the dashboard or any desired page
+                    console.log("login successful");
+
                     return res.redirect("/userDashboard");
+
                 } else {
                     // User profile not found, redirect to the user-profile page
+                    console.log("login successful");
+
                     return res.redirect("/user-profile");
+
                 }
             } else {
+                console.log("login insuccessful");
+
                 // Passwords do not match, login failed
-                console.log("Incorrect password");
-                return res.json({ success: false, message: "Invalid credentials" });
+                return res.status(401).json({ success: false, message: "Invalid credentials" });
             }
         } else {
+            console.log("login insuccessful");
+
             // User with the provided email does not exist
-            console.log("User not found");
-            return res.json({ success: false, message: "Invalid credentials" });
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
     } catch (error) {
+        console.log("login insuccessful");
+
         console.error(error);
         // Show an alert on the client side for any server error
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 });
+
+
   
 
 
@@ -564,19 +606,10 @@ app.post("/index", async (req, res) => {
     try {
         const { email_id, phone_no, password, confirmpassword } = req.body;
 
-        // Check if the passwords match
-        if (password !== confirmpassword) {
-            return res.status(400).json({ error: "Passwords do not match" });
-        }
-
-        // Check if the user already exists
-        const existingUser = await Register.findOne({ email_id });
-        if (existingUser) {
-            return res.status(400).json({ error: "User already exists with this email" });
-        }
+       
 
         // Hash the password
-        const saltRounds = 10;
+        const saltRounds = 10; // You can adjust the number of salt rounds
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // Create a new user
@@ -584,19 +617,19 @@ app.post("/index", async (req, res) => {
             email_id,
             phone_no,
             password: hashedPassword,
-            confirmpassword: hashedPassword, // You may adjust this according to your requirements
+            confirmpassword: hashedPassword,
         });
 
         // Save the user to the database
         await newUser.save();
 
-        res.status(201).json({ message: "User registered successfully" });
+        // Redirect or respond as needed
+        res.render('login');
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
-  
 
 app.get("/calculator1", (req, res) => {
     res.render("calculator1");
@@ -612,6 +645,7 @@ app.get("/alogin", (req, res) => {
 
     res.render("alogin");
 });
+
 app.get("/ll", (req, res) => {
     res.render("ll");
 });
@@ -656,14 +690,14 @@ app.post("/ll", async (req, res) => {
             const isPasswordMatch = await bcrypt.compare(password, trainer.password);
 
             if (isPasswordMatch) {
-                const userProfile = await TrainerProfile.findOne({ email: trainer.email_id });
+                const trainer1 = await Trainer_Register.findOne({ email_id: email_id });
                 // Set session variables for authenticated trainer
                 req.session.trainerEmail = trainer.email_id;
                 req.session.trainerName = trainer.name;
                 req.session.trainerPhone = trainer.phone_no;
 
                 // Check if trainer profile is set
-                if (userProfile) {
+                if (!trainer1) {
                     // Redirect to the trainer-profile page to set up the profile
                     return res.redirect("/trainer-profile");
                 }
@@ -697,12 +731,7 @@ app.post("/ll", async (req, res) => {
 
 
 
-app.get("/blog-deatails", (req, res) => {
-    res.render("blog-deatails");
-});
-app.get("/blog", (req, res) => {
-    res.render("blog");
-});
+
 app.get("/bmi-calculator", (req, res) => {
     res.render("bmi-calculator");
 });
@@ -782,8 +811,9 @@ app.post('/save-profile', upload.single('profileImage'), async (req, res) => {
     }
 });
 
-app.get("/feedback1", (req, res) => {
+app.get("/feedback1", async (req, res) => {
     res.render("feedback1");
+
 });
 app.get('/feedbacks', async (req, res) => {
     try {
@@ -872,7 +902,7 @@ app.post("/trainer_reg", async (req, res) => {
     
     try {
   
-        const { name,email_id, phone_no,experience,certificates, password, confirmpassword } = req.body;
+        const { name,email_id, phone_no,password, confirmpassword } = req.body;
 
         if (password === confirmpassword) {
             // Hash the password before storing it
@@ -883,8 +913,6 @@ app.post("/trainer_reg", async (req, res) => {
                 name:req.body.name,
                 email_id: req.body.email_id,
                 phone_no: req.body.phone_no,
-                experience:req.body.experience,
-    
                 password: hashedPassword,
                 confirmpassword: req.body.password,
             });
@@ -894,7 +922,6 @@ app.post("/trainer_reg", async (req, res) => {
 
             // Check if the registration was successful
             if (registered) {
-                console.log("Trainer registration done");
                 // Render the index view if registration is successful
                return res.status(201).render("ll");
             } else {

@@ -7,7 +7,7 @@
     <meta name="keywords" content="Gym, unica, creative, html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Gym | Template</title>
+    <title>yos-fithub | Plans</title>
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css?family=Muli:300,400,500,600,700,800,900&display=swap" rel="stylesheet">
@@ -89,15 +89,15 @@
             </div>
             <div class="col-lg-6">
                 <nav class="nav-menu">
-                    <ul>
-                        <li><a href="/index2">Home</a></li>
+                <ul>
+                        <li><a href="/userDashboard">Home</a></li>
 
                         <li><a href="#">Account</a>
                             <ul class="dropdown">
-                                <li><a href="/login">User login</a></li>
-                                <li><a href="/index">User Registration</a></li>
-                                <li><a href="/ll">Trainer Login</a></li>
-                                <li><a href="/trainer_reg">Trainer registration </a></li>
+                                <!-- <li><a href="/user-profile">set User Profile</a></li> -->
+                                <li><a href="/show-user-profile">Show User Profile</a></li>
+                                <li><a href="/index2">Logout</a></li>
+                                
                                 <li id="log"><a href="/alogin" >Admin Login</a></li>
                                 
                             </ul>
@@ -106,22 +106,21 @@
                         <li><a href="/trainer1">Trainers</a></li>
                         <li><a href="/team">Our Team</a></li>                           
                         <li><a href="./plans">Plans</a></li>
-
                         <li><a href="#">Services</a>
                             <ul class="dropdown">
-                                <li><a href="/about-us">About us</a></li>
-                                <li><a href="/class-timetable">Classes timetable</a></li>
+                                <li><a href="./buyed-plans-user"> buyed Plans</a></li>
                                 <li><a href="/calculator1">Health Calculators</a></li>
-                                <li><a href="/team">Our team</a></li>
                                 <li><a href="/feedback1">Feedback</a></li>
+                                <li><a href="/about-us">About us</a></li>
+
                             </ul>
                         </li>
                         <li><a href="/contact">Contact</a></li>
 
                         <li><a href="/about-us">About Us</a></li>
                     </ul>
-                </nav>
             </div>
+        </nav>
             <div class="col-lg-3">
                 <div class="top-option">
                     <div class="to-search search-switch">
@@ -198,83 +197,9 @@
             
     </div>
     </div>
-    
-    
-    <!-- Footer Section Begin -->
-    <section class="footer-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4">
-                    <div class="fs-about">
-                        <div class="fa-logo">
-                            <a href="#"><img src="img/logo.png" alt=""></a>
-                        </div>
-                        <p>"Elevate your fitness journey with our expert trainers and personalized plans. Achieve your goals with a tailored approach to health and wellness on our innovative web platform."</p>
-                        <div class="fa-social">
-                            <a href="#"><i class="fa fa-facebook"></i></a>
-                            <a href="#"><i class="fa fa-twitter"></i></a>
-                            <a href="#"><i class="fa fa-youtube-play"></i></a>
-                            <a href="#"><i class="fa fa-instagram"></i></a>
-                            <a href="#"><i class="fa  fa-envelope-o"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-6">
-                    <div class="fs-widget">
-                        <h4>Useful links</h4>
-                        <ul>
-                            <li><a href="#">About</a></li>
-                            <li><a href="#">Blog</a></li>
-                            <li><a href="#">Classes</a></li>
-                            <li><a href="#">Contact</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-6">
-                    <div class="fs-widget">
-                        <h4>Support</h4>
-                        <ul>
-                            <li><a href="#">Login</a></li>
-                            <li><a href="#">My account</a></li>
-                            <li><a href="#">Subscribe</a></li>
-                            <li><a href="#">Contact</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="fs-widget">
-                        <h4>Tips & Guides</h4>
-                        <div class="fw-recent">
-                            <h6><a href="#">Physical fitness may help prevent depression, anxiety</a></h6>
-                            <ul>
-                                <li>3 min read</li>
-                                <li>20 Comment</li>
-                            </ul>
-                        </div>
-                        <div class="fw-recent">
-                            <h6><a href="#">Fitness: The best exercise to lose belly fat and tone up...</a></h6>
-                            <ul>
-                                <li>3 min read</li>
-                                <li>20 Comment</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-12 text-center">
-                    <div class="copyright-text">
-                        <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-  <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Footer Section End -->
+        <!-- Footer Section Begin -->
+    <%- include('footer') %>
 
-    <!-- Search model Begin -->
     <div class="search-model">
         <div class="h-100 d-flex align-items-center justify-content-center">
             <div class="search-close-switch">+</div>
@@ -324,7 +249,7 @@
             });
         }
     </script> 
-   <script>
+<script>
     document.addEventListener('DOMContentLoaded', () => {
         const buyPlanButtons = document.querySelectorAll('.buy-plan-btn');
 
@@ -344,10 +269,17 @@
                         body: JSON.stringify({ planId, trainerEmail }), // Include trainer's email in the request
                     });
 
+                    const data = await response.json();
+
                     if (response.ok) {
-                        console.log('Plan purchased successfully');
+                        // Plan purchased successfully
+                        alert('Plan purchased successfully');
                         // Optionally, you can redirect or update UI here
+                    } else if (data.warning) {
+                        // User has already purchased the plan
+                        alert(data.warning);
                     } else {
+                        // Failed to purchase plan
                         console.error('Failed to purchase plan');
                     }
                 } catch (error) {
@@ -358,9 +290,8 @@
     });
 </script>
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-    
+
     
     
 
